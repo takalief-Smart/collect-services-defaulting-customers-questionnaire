@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استبيان العملاء المتعثرين - تحصيل الدفعات والفواتير | تكاليف</title>
+    <!-- Bootstrap RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- SheetJS -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #1e4a3b 0%, #2d6a4e 100%);
+            min-height: 100vh;
+            color: #1e3a3a;
+            padding: 20px;
+        }
+        
+        .main-header {
+            background: linear-gradient(135deg, #0e3b2c 0%, #1b5e3f 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 50px 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-bottom: 3px solid #52b788;
+        }
+        
+        .company-badge {
+            background: rgba(82, 183, 136, 0.3);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            display: inline-block;
+            font-weight: 600;
+            border: 1px solid #52b788;
+            color: white;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+            margin-bottom: 2rem;
+            background-color: #f8faf8;
+            border: 1px solid #e4f2e4;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #1e4a3b 0%, #2d6a4e 100%);
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            border-bottom: 2px solid #52b788;
+        }
+        
+        .btn-custom {
+            background: #52b788;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid #1e4a3b;
+        }
+        
+        .btn-custom:hover {
+            background: #2d6a4e;
+            transform: scale(1.05);
+            color: white;
+            box-shadow: 0 5px 20px rgba(82, 183, 136, 0.4);
+        }
+        
+        .btn-excel {
+            background: #1e4a3b;
+            color: white;
+            border: 2px solid #52b788;
+        }
+        
+        .btn-excel:hover {
+            background: #2d6a4e;
+            color: white;
+        }
+        
+        .btn-pdf {
+            background: #4a6b5a;
+            color: white;
+            border: 2px solid #52b788;
+        }
+        
+        .btn-pdf:hover {
+            background: #1e4a3b;
+            color: white;
+        }
+        
+        .form-label {
+            color: #2d6a4e;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e4f2e4;
+            border-radius: 10px;
+            padding: 0.75rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #52b788;
+            box-shadow: 0 0 0 0.2rem rgba(82, 183, 136, 0.25);
+        }
+        
+        .data-entry-section {
+            background: #f0f7f0;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 3px solid #52b788;
+        }
+        
+        .client-info-card {
+            background: linear-gradient(135deg, #f8faf8 0%, #ffffff 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 2px solid #52b788;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+        
+        .client-info-title {
+            color: #1e4a3b;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .client-info-title i {
+            color: #52b788;
+            margin-left: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .required-field::after {
+            content: "*";
+            color: #dc3545;
+            margin-right: 4px;
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #0e3b2c 0%, #1b5e3f 100%);
+            color: white;
+            padding: 3rem 0 1.5rem;
+            margin-top: 3rem;
+            border-radius: 50px 50px 0 0;
+            border-top: 3px solid #52b788;
+        }
+        
+        .footer-links {
+            color: #e4f2e4;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-links:hover {
+            color: #52b788;
+            padding-right: 5px;
+        }
+        
+        .contact-item {
+            margin-bottom: 10px;
+            color: #e4f2e4;
+        }
+        
+        .contact-item i {
+            color: #52b788;
+            margin-left: 10px;
+            width: 20px;
+        }
+        
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(82, 183, 136, 0.2);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 5px;
+            color: #52b788;
+            transition: all 0.3s ease;
+            border: 1px solid #52b788;
+        }
+        
+        .social-icon:hover {
+            background: #52b788;
+            color: #0e3b2c;
+            transform: translateY(-3px);
+        }
+        
+        .nav-tabs-custom {
+            border-bottom: 3px solid #52b788;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #1e4a3b 0%, #2d6a4e 100%);
+            border-radius: 50px;
+            padding: 0.5rem;
+        }
+        
+        .nav-tabs-custom .nav-link {
+            color: white !important;
+            font-weight: 600;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tabs-custom .nav-link i {
+            color: white;
+        }
+        
+        .nav-tabs-custom .nav-link.active {
+            color: #1e4a3b !important;
+            background: #52b788;
+            border: 2px solid white;
+        }
+        
+        .nav-tabs-custom .nav-link.active i {
+            color: #1e4a3b;
+        }
+        
+        .preview-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 2px solid #52b788;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-header {
+            background: #e8f5e9;
+            padding: 0.75rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border-right: 5px solid #52b788;
+            font-weight: 700;
+            color: #1e4a3b;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .data-table th, .data-table td {
+            padding: 0.6rem;
+            border: 1px solid #52b788;
+            text-align: right;
+            vertical-align: top;
+        }
+        
+        .data-table th {
+            background: #1e4a3b;
+            color: white;
+            font-weight: 700;
+            text-align: center;
+        }
+        
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        
+        .info-table th, .info-table td {
+            padding: 0.5rem;
+            border: 1px solid #e4f2e4;
+            text-align: right;
+        }
+        
+        .info-table th {
+            background: #e8f5e9;
+            color: #1e4a3b;
+            width: 40%;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .status-critical { background: #e74c3c; color: white; }
+        .status-high { background: #e67e22; color: white; }
+        .status-medium { background: #f39c12; color: white; }
+        .status-low { background: #27ae60; color: white; }
+        
+        .distressed-client-item {
+            background: #f8faf8;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e4f2e4;
+        }
+        
+        /* PDF Export Container */
+        #pdf-export-container {
+            position: fixed;
+            top: -99999px;
+            left: -99999px;
+            width: 800px;
+            background: white;
+            z-index: 9999;
+            padding: 30px;
+            opacity: 0;
+            pointer-events: none;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .pdf-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            direction: rtl;
+        }
+        
+        .pdf-cover {
+            background: linear-gradient(135deg, #0e3b2c 0%, #1b5e3f 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 30px;
+            margin-bottom: 30px;
+            border: 4px solid #52b788;
+            text-align: center;
+        }
+        
+        .pdf-section-title {
+            color: #1e4a3b;
+            font-size: 18px;
+            font-weight: 800;
+            margin: 25px 0 15px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid #52b788;
+        }
+        
+        .pdf-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 10px;
+            border: 1px solid #52b788;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .pdf-table th {
+            background: #1e4a3b;
+            color: white;
+            padding: 8px 6px;
+            font-weight: 700;
+            text-align: center;
+            font-size: 10px;
+        }
+        
+        .pdf-table td {
+            padding: 6px;
+            border: 1px solid #e4f2e4;
+            text-align: right;
+            font-size: 9px;
+        }
+        
+        .pdf-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, #0e3b2c 0%, #1b5e3f 100%);
+            color: white;
+            border-radius: 15px;
+            border: 2px solid #52b788;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="main-header text-center no-print">
+        <div class="container">
+            <span class="company-badge mb-3">تكاليف | حلول أعمال ذكية</span>
+            <h1 class="display-4 fw-bold mt-3" style="color: white;">
+                <i class="fas fa-exclamation-triangle me-3"></i>
+                استبيان العملاء المتعثرين
+            </h1>
+            <p class="lead" style="color: white;">خدمة تحصيل الدفعات والفواتير - تحليل العملاء المتعثرين وتقييم المخاطر الائتمانية</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs-custom nav-fill" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="data-entry-tab" data-bs-toggle="tab" data-bs-target="#dataEntry" type="button" role="tab">
+                    <i class="fas fa-edit me-2"></i> استبيان المعلومات
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview" type="button" role="tab">
+                    <i class="fas fa-eye me-2"></i> معاينة التقرير
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- Tab 1: Data Entry -->
+            <div class="tab-pane fade show active" id="dataEntry" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-exclamation-triangle me-2"></i> استبيان العملاء المتعثرين - تحصيل الدفعات والفواتير
+                    </div>
+                    <div class="card-body">
+                        <!-- بيانات المنشأة -->
+                        <div class="client-info-card">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="client-info-title"><i class="fas fa-building"></i> بيانات المنشأة</div>
+                                    <div class="mb-3"><label class="form-label required-field">اسم المنشأة</label><input type="text" class="form-control" id="companyName" placeholder="أدخل اسم المنشأة"></div>
+                                    <div class="mb-3"><label class="form-label">النشاط الرئيسي</label><input type="text" class="form-control" id="businessActivity" placeholder="مثال: تصنيع / تجارة / خدمات"></div>
+                                    <div class="mb-3"><label class="form-label">حجم المنشأة</label><select class="form-select" id="companySize"><option value="">اختر...</option><option value="صغيرة (أقل من 50 موظف)">صغيرة (أقل من 50 موظف)</option><option value="متوسطة (50-250 موظف)">متوسطة (50-250 موظف)</option><option value="كبيرة (أكثر من 250 موظف)">كبيرة (أكثر من 250 موظف)</option></select></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="client-info-title"><i class="fas fa-address-card"></i> بيانات المسؤول</div>
+                                    <div class="mb-3"><label class="form-label required-field">اسم المسؤول عن التقييم</label><input type="text" class="form-control" id="contactPerson" placeholder="أدخل اسم المسؤول"></div>
+                                    <div class="mb-3"><label class="form-label required-field">المسمى الوظيفي</label><input type="text" class="form-control" id="jobTitle" placeholder="مثال: مدير الائتمان"></div>
+                                    <div class="mb-3"><label class="form-label required-field">البريد الإلكتروني</label><input type="email" class="form-control" id="clientEmail" placeholder="example@company.com"></div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">رقم الهاتف</label><input type="tel" class="form-control" id="clientPhone" placeholder="رقم الهاتف"></div></div>
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">تاريخ التعبئة</label><input type="date" class="form-control" id="submissionDate" value="2026-03-30"></div></div>
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">العملة المستخدمة</label><select class="form-select" id="currencySelect"><option value="EGP" selected>جنيه مصري (EGP)</option><option value="SAR">ريال سعودي (SAR)</option><option value="AED">درهم إماراتي (AED)</option><option value="USD">دولار أمريكي (USD)</option></select></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم الأول: نظرة عامة على العملاء المتعثرين -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-chart-pie me-2"></i> القسم الأول: نظرة عامة على العملاء المتعثرين</h4>
+                            <div class="row">
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">إجمالي عدد العملاء المتعثرين</label><input type="number" class="form-control" id="totalDistressed" placeholder="عدد العملاء"></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">إجمالي قيمة مستحقات العملاء المتعثرين</label><input type="text" class="form-control" id="totalDistressedValue" placeholder="المبلغ الإجمالي"></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">نسبة المتعثرين من إجمالي العملاء</label><input type="text" class="form-control" id="distressedPercent" placeholder="النسبة المئوية"></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">نسبة قيمة المتعثرين من إجمالي الذمم</label><input type="text" class="form-control" id="distressedValuePercent" placeholder="النسبة المئوية"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم الثاني: أسباب التعثر -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-question-circle me-2"></i> القسم الثاني: أسباب التعثر</h4>
+                            <div class="row">
+                                <div class="col-md-12"><label class="form-label">أسباب التعثر الرئيسية (اختر ما يناسب)</label></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="reasonLiquidity" value="ضعف السيولة لدى العميل"><label class="form-check-label">ضعف السيولة لدى العميل</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="reasonDispute" value="نزاع على الفواتير/الخدمات"><label class="form-check-label">نزاع على الفواتير/الخدمات</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="reasonEconomic" value="ظروف اقتصادية عامة"><label class="form-check-label">ظروف اقتصادية عامة</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="reasonManagement" value="ضعف الإدارة المالية للعميل"><label class="form-check-label">ضعف الإدارة المالية للعميل</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="reasonDocumentation" value="ضعف التوثيق/المستندات"><label class="form-check-label">ضعف التوثيق/المستندات</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="reasonCommunication" value="ضعف التواصل مع العميل"><label class="form-check-label">ضعف التواصل مع العميل</label></div></div>
+                                <div class="col-md-12"><div class="mb-3 mt-3"><label class="form-label">أسباب أخرى</label><textarea class="form-control" id="otherReasons" rows="2" placeholder="اذكر أسباب أخرى"></textarea></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم الثالث: توزيع المتعثرين حسب الفترة -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-calendar-alt me-2"></i> القسم الثالث: توزيع المتعثرين حسب فترة التأخير</h4>
+                            <div class="row">
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">31 - 60 يوم</label><input type="text" class="form-control" id="aging31_60" placeholder="عدد العملاء"></div></div>
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">61 - 90 يوم</label><input type="text" class="form-control" id="aging61_90" placeholder="عدد العملاء"></div></div>
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">91 - 180 يوم</label><input type="text" class="form-control" id="aging91_180" placeholder="عدد العملاء"></div></div>
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">أكثر من 180 يوم</label><input type="text" class="form-control" id="agingOver180" placeholder="عدد العملاء"></div></div>
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">أكثر من 365 يوم</label><input type="text" class="form-control" id="agingOver365" placeholder="عدد العملاء"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم الرابع: تصنيف المخاطر -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-chart-line me-2"></i> القسم الرابع: تصنيف المخاطر</h4>
+                            <div class="row">
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">مخاطر عالية جداً (حرجة)</label><input type="text" class="form-control" id="riskCritical" placeholder="عدد العملاء"></div></div>
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">مخاطر عالية</label><input type="text" class="form-control" id="riskHigh" placeholder="عدد العملاء"></div></div>
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">مخاطر متوسطة</label><input type="text" class="form-control" id="riskMedium" placeholder="عدد العملاء"></div></div>
+                                <div class="col-md-12"><div class="mb-3"><label class="form-label">معايير تصنيف المخاطر</label><textarea class="form-control" id="riskCriteria" rows="2" placeholder="اذكر معايير التصنيف المستخدمة"></textarea></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم الخامس: الإجراءات المتخذة -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-tasks me-2"></i> القسم الخامس: الإجراءات المتخذة مع المتعثرين</h4>
+                            <div class="row">
+                                <div class="col-md-12"><label class="form-label">الإجراءات المتخذة (اختر ما يناسب)</label></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="actionReminder" value="تذكيرات متكررة"><label class="form-check-label">تذكيرات متكررة</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="actionCall" value="مكالمات هاتفية مكثفة"><label class="form-check-label">مكالمات هاتفية مكثفة</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="actionVisit" value="زيارات ميدانية"><label class="form-check-label">زيارات ميدانية</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="actionStop" value="إيقاف الخدمة/البيع"><label class="form-check-label">إيقاف الخدمة/البيع</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="actionLegal" value="إجراءات قانونية"><label class="form-check-label">إجراءات قانونية</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="actionSettlement" value="تسوية الديون"><label class="form-check-label">تسوية الديون</label></div></div>
+                                <div class="col-md-12"><div class="mb-3 mt-3"><label class="form-label">إجراءات أخرى</label><textarea class="form-control" id="otherActions" rows="2" placeholder="اذكر إجراءات أخرى"></textarea></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم السادس: العملاء المتعثرون الرئيسيون (ديناميكي) -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-user-slash me-2"></i> القسم السادس: العملاء المتعثرون الرئيسيون</h4>
+                            <div id="distressedClientsContainer"></div>
+                            <button class="btn btn-custom btn-sm mt-2" onclick="addDistressedClient()"><i class="fas fa-plus-circle me-1"></i> إضافة عميل متعثر</button>
+                        </div>
+
+                        <!-- القسم السابع: معلومات إضافية -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-info-circle me-2"></i> القسم السابع: معلومات إضافية</h4>
+                            <div class="row">
+                                <div class="col-md-12"><div class="mb-3"><label class="form-label">أي معلومات إضافية حول العملاء المتعثرين</label><textarea class="form-control" id="additionalInfo" rows="3" placeholder="أي معلومات إضافية"></textarea></div></div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button class="btn btn-custom btn-lg" onclick="refreshPreview()"><i class="fas fa-sync-alt me-2"></i> تحديث المعاينة</button>
+                            <button class="btn btn-custom btn-lg mx-2" onclick="resetForm()"><i class="fas fa-undo me-2"></i> إعادة تعيين</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Preview -->
+            <div class="tab-pane fade" id="preview" role="tabpanel">
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-file-alt me-2"></i> معاينة تقرير العملاء المتعثرين</div>
+                    <div class="card-body" id="previewContent"></div>
+                </div>
+                <div class="text-center mb-4 no-print">
+                    <button class="btn btn-excel btn-lg mx-2" onclick="exportToExcel()"><i class="fas fa-file-excel me-2"></i> تصدير (Excel)</button>
+                    <button class="btn btn-pdf btn-lg mx-2" onclick="exportToPDF(event)"><i class="fas fa-file-pdf me-2"></i> تصدير التقرير (PDF)</button>
+                    <button class="btn btn-custom btn-lg mx-2" onclick="window.print()"><i class="fas fa-print me-2"></i> طباعة</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer no-print">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4"><h5 style="color: #52b788;">تكاليف - حلول أعمال ذكية</h5><p style="color: #e4f2e4;">نقدم خدمات تحصيل الدفعات والفواتير وتحليل العملاء المتعثرين.</p></div>
+                <div class="col-md-4 mb-4"><h5 style="color: #52b788;"><i class="fas fa-address-card me-2"></i>معلومات الاتصال</h5><div class="contact-item"><i class="fas fa-map-marker-alt"></i> القاهرة - مصر</div><div class="contact-item"><i class="fas fa-phone-alt"></i><a href="tel:+201044391177" class="footer-links">+20 104 439 1177</a></div><div class="contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@takalief.com" class="footer-links">info@takalief.com</a></div><div class="contact-item"><i class="fas fa-globe"></i><a href="https://www.takalief.com" class="footer-links" target="_blank">www.takalief.com</a></div></div>
+                <div class="col-md-4 mb-4"><h5 style="color: #52b788;"><i class="fas fa-share-alt me-2"></i>تابعنا على</h5><div class="text-center"><a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a><a href="#" class="social-icon"><i class="fab fa-twitter"></i></a><a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a><a href="#" class="social-icon"><i class="fab fa-instagram"></i></a><a href="#" class="social-icon"><i class="fab fa-youtube"></i></a><a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a></div></div>
+            </div>
+            <hr>
+            <div class="row mt-3"><div class="col-md-6 text-md-start text-center"><p class="mb-0" style="color: #e4f2e4;"><i class="fas fa-copyright me-2" style="color: #52b788;"></i>2026 تكاليف - حلول أعمال ذكية. جميع الحقوق محفوظة</p></div><div class="col-md-6 text-md-end text-center"><a href="#" class="footer-links me-3">سياسة الخصوصية</a><a href="#" class="footer-links me-3">شروط الاستخدام</a><a href="#" class="footer-links">الدعم الفني</a></div></div>
+        </div>
+    </footer>
+
+    <div id="pdf-export-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let distressedClientCount = 1;
+        let selectedCurrency = 'EGP';
+        const currencyNames = { 'EGP': 'جنيه مصري', 'SAR': 'ريال سعودي', 'AED': 'درهم إماراتي', 'USD': 'دولار أمريكي' };
+        
+        document.getElementById('currencySelect').addEventListener('change', function() {
+            selectedCurrency = this.value;
+            refreshPreview();
+        });
+        
+        function addDistressedClient() {
+            distressedClientCount++;
+            const container = document.getElementById('distressedClientsContainer');
+            const newClient = document.createElement('div');
+            newClient.className = 'distressed-client-item';
+            newClient.id = `distressedClient-${distressedClientCount}`;
+            newClient.innerHTML = `
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" placeholder="اسم العميل" id="clientName${distressedClientCount}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control" placeholder="المبلغ المستحق" id="clientAmount${distressedClientCount}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="text" class="form-control" placeholder="مدة التأخير (أيام)" id="clientDelay${distressedClientCount}">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="clientRisk${distressedClientCount}">
+                            <option value="">مستوى المخاطرة</option>
+                            <option value="حرجة">حرجة</option>
+                            <option value="عالية">عالية</option>
+                            <option value="متوسطة">متوسطة</option>
+                            <option value="منخفضة">منخفضة</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-danger btn-sm" onclick="removeDistressedClient(${distressedClientCount})"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <select class="form-select" id="clientAction${distressedClientCount}">
+                            <option value="">الإجراء المتخذ</option>
+                            <option value="تذكيرات">تذكيرات</option>
+                            <option value="مكالمات هاتفية">مكالمات هاتفية</option>
+                            <option value="زيارات ميدانية">زيارات ميدانية</option>
+                            <option value="إنذار رسمي">إنذار رسمي</option>
+                            <option value="إجراءات قانونية">إجراءات قانونية</option>
+                            <option value="تسوية">تسوية</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <textarea class="form-control" rows="1" placeholder="ملاحظات إضافية" id="clientNotes${distressedClientCount}"></textarea>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newClient);
+            refreshPreview();
+        }
+        
+        function removeDistressedClient(id) {
+            if (distressedClientCount > 1) {
+                const element = document.getElementById(`distressedClient-${id}`);
+                if (element) element.remove();
+                refreshPreview();
+            } else {
+                alert("لا يمكن حذف العميل الوحيد المتبقي");
+            }
+        }
+        
+        function getReasonsList() {
+            const reasons = [];
+            const reasonIds = ['reasonLiquidity', 'reasonDispute', 'reasonEconomic', 'reasonManagement', 'reasonDocumentation', 'reasonCommunication'];
+            reasonIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.checked) reasons.push(el.value);
+            });
+            const other = document.getElementById('otherReasons')?.value;
+            if (other) reasons.push(other);
+            return reasons;
+        }
+        
+        function getActionsList() {
+            const actions = [];
+            const actionIds = ['actionReminder', 'actionCall', 'actionVisit', 'actionStop', 'actionLegal', 'actionSettlement'];
+            actionIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.checked) actions.push(el.value);
+            });
+            const other = document.getElementById('otherActions')?.value;
+            if (other) actions.push(other);
+            return actions;
+        }
+        
+        function getDistressedClientsData() {
+            const clients = [];
+            for (let i = 1; i <= distressedClientCount; i++) {
+                const nameElem = document.getElementById(`clientName${i}`);
+                const name = nameElem ? nameElem.value : '';
+                if (name) {
+                    const amount = document.getElementById(`clientAmount${i}`) ? document.getElementById(`clientAmount${i}`).value : '';
+                    const delay = document.getElementById(`clientDelay${i}`) ? document.getElementById(`clientDelay${i}`).value : '';
+                    const risk = document.getElementById(`clientRisk${i}`) ? document.getElementById(`clientRisk${i}`).value : '';
+                    const action = document.getElementById(`clientAction${i}`) ? document.getElementById(`clientAction${i}`).value : '';
+                    const notes = document.getElementById(`clientNotes${i}`) ? document.getElementById(`clientNotes${i}`).value : '';
+                    clients.push({ name, amount, delay, risk, action, notes });
+                }
+            }
+            return clients;
+        }
+        
+        function getFieldValue(id, defaultValue = '—') {
+            const element = document.getElementById(id);
+            return element && element.value.trim() !== '' ? element.value.trim() : defaultValue;
+        }
+        
+        function getNumberValue(id, defaultValue = '—') {
+            const element = document.getElementById(id);
+            return element && element.value.trim() !== '' ? element.value : defaultValue;
+        }
+        
+        function getSelectText(id, defaultValue = '—') {
+            const select = document.getElementById(id);
+            if (select && select.options[select.selectedIndex] && select.options[select.selectedIndex].value !== '') {
+                return select.options[select.selectedIndex].text;
+            }
+            return defaultValue;
+        }
+        
+        function getRiskBadge(risk) {
+            if (risk === 'حرجة') return '<span class="status-badge status-critical">حرجة</span>';
+            if (risk === 'عالية') return '<span class="status-badge status-high">عالية</span>';
+            if (risk === 'متوسطة') return '<span class="status-badge status-medium">متوسطة</span>';
+            if (risk === 'منخفضة') return '<span class="status-badge status-low">منخفضة</span>';
+            return risk;
+        }
+        
+        function formatListTable(items, title) {
+            if (!items.length) return '<span style="color: #dc3545;">لا توجد بيانات محددة</span>';
+            let html = '<table class="data-table"><thead><tr><th style="width:10%">#</th><th>' + title + '</th></tr></thead><tbody>';
+            items.forEach((item, index) => {
+                html += `<tr><td style="text-align:center;">${index + 1}</td><td>${item}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            return html;
+        }
+        
+        function formatDistressedClientsTable() {
+            const clients = getDistressedClientsData();
+            if (!clients.length) return '<span style="color: #dc3545;">لا توجد بيانات</span>';
+            let html = '<table class="data-table"><thead><tr><th style="width:5%">#</th><th>اسم العميل</th><th>المبلغ المستحق</th><th>مدة التأخير</th><th>مستوى المخاطرة</th><th>الإجراء المتخذ</th><th>ملاحظات</th></tr></thead><tbody>';
+            clients.forEach((client, index) => {
+                html += `<tr>
+                    <td style="text-align:center;">${index + 1}</td>
+                    <td>${client.name}</td>
+                    <td>${client.amount || '—'}</td>
+                    <td>${client.delay || '—'}</td>
+                    <td>${getRiskBadge(client.risk)}</td>
+                    <td>${client.action || '—'}</td>
+                    <td>${client.notes || '—'}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            return html;
+        }
+        
+        function refreshPreview() {
+            const reasons = getReasonsList();
+            const actions = getActionsList();
+            
+            const previewHtml = `
+                <div class="preview-card">
+                    <div class="section-header"><i class="fas fa-building me-2"></i> بيانات المنشأة</div>
+                    <table class="info-table">
+                        <tr><th>اسم المنشأة</th><td>${getFieldValue('companyName')}</td></tr>
+                        <tr><th>النشاط الرئيسي</th><td>${getFieldValue('businessActivity')}</td></tr>
+                        <tr><th>حجم المنشأة</th><td>${getSelectText('companySize')}</td></tr>
+                        <tr><th>المسؤول</th><td>${getFieldValue('contactPerson')} (${getFieldValue('jobTitle')})</td></tr>
+                        <tr><th>البريد الإلكتروني</th><td>${getFieldValue('clientEmail')}</td></tr>
+                        <tr><th>رقم الهاتف</th><td>${getFieldValue('clientPhone')}</td></tr>
+                    </table>
+                </div>
+                
+                <div class="preview-card">
+                    <div class="section-header"><i class="fas fa-chart-pie me-2"></i> نظرة عامة على العملاء المتعثرين</div>
+                    <table class="info-table">
+                        <tr><th>إجمالي عدد العملاء المتعثرين</th><td>${getNumberValue('totalDistressed')}</td></tr>
+                        <tr><th>إجمالي قيمة مستحقات المتعثرين</th><td>${getFieldValue('totalDistressedValue')}</td></tr>
+                        <tr><th>نسبة المتعثرين من إجمالي العملاء</th><td>${getFieldValue('distressedPercent')}</td></tr>
+                        <tr><th>نسبة قيمة المتعثرين من إجمالي الذمم</th><td>${getFieldValue('distressedValuePercent')}</td></tr>
+                    </table>
+                </div>
+                
+                <div class="preview-card">
+                    <div class="section-header"><i class="fas fa-question-circle me-2"></i> أسباب التعثر</div>
+                    ${formatListTable(reasons, 'السبب')}
+                </div>
+                
+                <div class="preview-card">
+                    <div class="section-header"><i class="fas fa-calendar-alt me-2"></i> توزيع المتعثرين حسب فترة التأخير</div>
+                    <table class="info-table">
+                        <tr><th>31 - 60 يوم</th><td>${getNumberValue('aging31_60')}</td></tr>
+                        <tr><th>61 - 90 يوم</th><td>${getNumberValue('aging61_90')}</td></tr>
+                        <tr><th>91 - 180 يوم</th><td>${getNumberValue('aging91_180')}</td></tr>
+                        <tr><th>أكثر من 180 يوم</th><td>${getNumberValue('agingOver180')}</td></tr>
+                        <tr><th>أكثر من 365 يوم</th><td>${getNumberValue('agingOver365')}</td></tr>
+                    </table>
+                </div>
+                
+                <div class="preview-card">
+                    <div class="section-header"><i class="fas fa-chart-line me-2"></i> تصنيف المخاطر</div>
+                    <table class="info-table">
+                        <tr><th>مخاطر عالية جداً (حرجة)</th><td>${getNumberValue('riskCritical')}</td></tr>
+                        <tr><th>مخاطر عالية</th><td>${getNumberValue('riskHigh')}</td></tr>
+                        <tr><th>مخاطر متوسطة</th><td>${getNumberValue('riskMedium')}</td></tr>
+                        <tr><th>معايير تصنيف المخاطر</th><td>${getFieldValue('riskCriteria')}</td></tr>
+                    </table>
+                </div>
+                
+                <div class="preview-card">
+                    <div class="section-header"><i class="fas fa-tasks me-2"></i> الإجراءات المتخذة</div>
+                    ${formatListTable(actions, 'الإجراء')}
+                </div>
+                
+                <div class="preview-card">
+                    <div class="section-header"><i class="fas fa-user-slash me-2"></i> العملاء المتعثرون الرئيسيون</div>
+                    ${formatDistressedClientsTable()}
+                </div>
+                
+                <div class="preview-card">
+                    <div class="section-header"><i class="fas fa-info-circle me-2"></i> معلومات إضافية</div>
+                    <div class="preview-item"><span class="preview-label">ملاحظات</span><span class="preview-value">${getFieldValue('additionalInfo')}</span></div>
+                </div>
+                
+                <div class="preview-card text-center">
+                    <hr>
+                    <p style="color: #1e4a3b;"><i class="fas fa-check-circle me-2"></i>تم تعبئة استبيان العملاء المتعثرين بنجاح</p>
+                    <p class="text-muted small">تاريخ الإصدار: ${new Date().toLocaleDateString('ar-EG')}</p>
+                </div>
+            `;
+            document.getElementById('previewContent').innerHTML = previewHtml;
+        }
+        
+        function resetForm() { if(confirm('هل أنت متأكد من إعادة تعيين جميع البيانات؟')) location.reload(); }
+        
+        function exportToExcel() {
+            const companyName = getFieldValue('companyName', 'منشأة');
+            const reasons = getReasonsList();
+            const actions = getActionsList();
+            const distressedClients = getDistressedClientsData();
+            
+            const excelData = [
+                ['استبيان العملاء المتعثرين', 'خدمة تحصيل الدفعات والفواتير'],
+                ['تاريخ التقرير', new Date().toLocaleDateString('ar-EG')],
+                ['اسم المنشأة', companyName],
+                ['المسؤول', getFieldValue('contactPerson')],
+                ['المسمى الوظيفي', getFieldValue('jobTitle')],
+                ['البريد الإلكتروني', getFieldValue('clientEmail')],
+                ['رقم الهاتف', getFieldValue('clientPhone')],
+                [], ['1. نظرة عامة:', ''],
+                ['إجمالي عدد العملاء المتعثرين', getNumberValue('totalDistressed')],
+                ['إجمالي قيمة مستحقات المتعثرين', getFieldValue('totalDistressedValue')],
+                ['نسبة المتعثرين من إجمالي العملاء', getFieldValue('distressedPercent')],
+                ['نسبة قيمة المتعثرين من إجمالي الذمم', getFieldValue('distressedValuePercent')],
+                [], ['2. أسباب التعثر:', ''],
+                ...reasons.map((r, i) => [`سبب ${i+1}`, r]),
+                [], ['3. توزيع المتعثرين حسب فترة التأخير:', ''],
+                ['31 - 60 يوم', getNumberValue('aging31_60')],
+                ['61 - 90 يوم', getNumberValue('aging61_90')],
+                ['91 - 180 يوم', getNumberValue('aging91_180')],
+                ['أكثر من 180 يوم', getNumberValue('agingOver180')],
+                ['أكثر من 365 يوم', getNumberValue('agingOver365')],
+                [], ['4. تصنيف المخاطر:', ''],
+                ['مخاطر عالية جداً (حرجة)', getNumberValue('riskCritical')],
+                ['مخاطر عالية', getNumberValue('riskHigh')],
+                ['مخاطر متوسطة', getNumberValue('riskMedium')],
+                ['معايير تصنيف المخاطر', getFieldValue('riskCriteria')],
+                [], ['5. الإجراءات المتخذة:', ''],
+                ...actions.map((r, i) => [`إجراء ${i+1}`, r]),
+                [], ['6. العملاء المتعثرون الرئيسيون:', ''],
+                ['اسم العميل', 'المبلغ المستحق', 'مدة التأخير', 'مستوى المخاطرة', 'الإجراء المتخذ', 'ملاحظات'],
+                ...distressedClients.map(c => [c.name, c.amount || '—', c.delay || '—', c.risk || '—', c.action || '—', c.notes || '—']),
+                [], ['7. معلومات إضافية:', ''],
+                ['ملاحظات', getFieldValue('additionalInfo')],
+                [], ['للتواصل: info@takalief.com | +20 104 439 1177'], ['www.takalief.com']
+            ];
+            
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            ws['!cols'] = [{wch:30}, {wch:25}];
+            XLSX.utils.book_append_sheet(wb, ws, 'العملاء_المتعثرين');
+            XLSX.writeFile(wb, `Distressed_Clients_${companyName.replace(/\s/g, '_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+            alert('تم تصدير استبيان Excel بنجاح');
+        }
+        
+        async function exportToPDF(event) {
+            try {
+                const exportBtn = event.target;
+                const originalText = exportBtn.innerHTML;
+                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> جاري إعداد التقرير...';
+                exportBtn.disabled = true;
+                
+                const pdfContainer = document.getElementById('pdf-export-container');
+                pdfContainer.innerHTML = '';
+                pdfContainer.style.opacity = '1';
+                pdfContainer.style.position = 'absolute';
+                pdfContainer.style.top = '0';
+                pdfContainer.style.left = '0';
+                pdfContainer.style.zIndex = '9999';
+                
+                const companyName = getFieldValue('companyName', 'غير محدد');
+                const contactPerson = getFieldValue('contactPerson', 'غير محدد');
+                const currentDate = new Date().toLocaleDateString('ar-EG');
+                const reasons = getReasonsList();
+                const actions = getActionsList();
+                const distressedClients = getDistressedClientsData();
+                
+                function buildListRows(items) {
+                    if (!items.length) return '<tr><td colspan="2" style="text-align:center;">لا توجد بيانات محددة</td></tr>';
+                    let rows = '';
+                    items.forEach((item, i) => {
+                        rows += `<tr><td style="text-align:center; width:10%;">${i+1}</td><td style="text-align:right;">${item}</td></tr>`;
+                    });
+                    return rows;
+                }
+                
+                function buildDistressedRows() {
+                    if (!distressedClients.length) return '<tr><td colspan="7" style="text-align:center;">لا توجد بيانات</td></tr>';
+                    let rows = '';
+                    distressedClients.forEach((client, i) => {
+                        let riskDisplay = client.risk;
+                        if (client.risk === 'حرجة') riskDisplay = 'حرجة';
+                        else if (client.risk === 'عالية') riskDisplay = 'عالية';
+                        else if (client.risk === 'متوسطة') riskDisplay = 'متوسطة';
+                        else if (client.risk === 'منخفضة') riskDisplay = 'منخفضة';
+                        rows += `<tr>
+                            <td style="text-align:center;">${i+1}</td>
+                            <td style="text-align:right;">${client.name}</td>
+                            <td style="text-align:right;">${client.amount || '—'}</td>
+                            <td style="text-align:center;">${client.delay || '—'}</td>
+                            <td style="text-align:center;">${riskDisplay}</td>
+                            <td style="text-align:center;">${client.action || '—'}</td>
+                            <td style="text-align:right;">${client.notes || '—'}</td>
+                        </tr>`;
+                    });
+                    return rows;
+                }
+                
+                const pdfWrapper = document.createElement('div');
+                pdfWrapper.className = 'pdf-wrapper';
+                pdfWrapper.innerHTML = `
+                    <div class="pdf-cover">
+                        <h1>استبيان العملاء المتعثرين</h1>
+                        <h3>خدمة تحصيل الدفعات والفواتير</h3>
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; margin-top: 30px; border: 2px solid #52b788;">
+                            <p style="font-size: 16px;">المنشأة: ${companyName}</p>
+                            <p style="font-size: 14px;">المسؤول: ${contactPerson}</p>
+                            <p style="font-size: 14px;">تاريخ التقرير: ${currentDate}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="page-break-before: always;">
+                        <h2 class="pdf-section-title">بيانات المنشأة</h2>
+                        <table class="pdf-table"><tr><th style="width:35%">البيان</th><th>القيمة</th></tr>
+                            <tr><td style="text-align:right;">اسم المنشأة</td><td style="text-align:right;">${getFieldValue('companyName')}</td></tr>
+                            <tr><td style="text-align:right;">النشاط الرئيسي</td><td style="text-align:right;">${getFieldValue('businessActivity')}</td></tr>
+                            <tr><td style="text-align:right;">حجم المنشأة</td><td style="text-align:right;">${getSelectText('companySize')}</td></tr>
+                            <tr><td style="text-align:right;">المسؤول</td><td style="text-align:right;">${getFieldValue('contactPerson')} (${getFieldValue('jobTitle')})</td></tr>
+                            <tr><td style="text-align:right;">البريد الإلكتروني</td><td style="text-align:right;">${getFieldValue('clientEmail')}</td></tr>
+                            <tr><td style="text-align:right;">رقم الهاتف</td><td style="text-align:right;">${getFieldValue('clientPhone')}</td></tr>
+                        </table>
+                        
+                        <h2 class="pdf-section-title">نظرة عامة على العملاء المتعثرين</h2>
+                        <table class="pdf-table"><tr><th style="width:35%">البيان</th><th>القيمة</th></tr>
+                            <tr><td style="text-align:right;">إجمالي عدد العملاء المتعثرين</td><td style="text-align:right;">${getNumberValue('totalDistressed')}</td></tr>
+                            <tr><td style="text-align:right;">إجمالي قيمة مستحقات المتعثرين</td><td style="text-align:right;">${getFieldValue('totalDistressedValue')}</td></tr>
+                            <tr><td style="text-align:right;">نسبة المتعثرين من إجمالي العملاء</td><td style="text-align:right;">${getFieldValue('distressedPercent')}</td></tr>
+                            <tr><td style="text-align:right;">نسبة قيمة المتعثرين من إجمالي الذمم</td><td style="text-align:right;">${getFieldValue('distressedValuePercent')}</td></tr>
+                        </table>
+                        
+                        <h2 class="pdf-section-title">أسباب التعثر</h2>
+                        <table class="pdf-table"><tr><th style="width:10%">م</th><th>السبب</th></tr>${buildListRows(reasons)}</table>
+                        
+                        <h2 class="pdf-section-title">توزيع المتعثرين حسب فترة التأخير</h2>
+                        <table class="pdf-table"><tr><th style="width:35%">الفترة</th><th>عدد العملاء</th></tr>
+                            <tr><td style="text-align:right;">31 - 60 يوم</td><td style="text-align:right;">${getNumberValue('aging31_60')}</td></tr>
+                            <tr><td style="text-align:right;">61 - 90 يوم</td><td style="text-align:right;">${getNumberValue('aging61_90')}</td></tr>
+                            <tr><td style="text-align:right;">91 - 180 يوم</td><td style="text-align:right;">${getNumberValue('aging91_180')}</td></tr>
+                            <tr><td style="text-align:right;">أكثر من 180 يوم</td><td style="text-align:right;">${getNumberValue('agingOver180')}</td></tr>
+                            <tr><td style="text-align:right;">أكثر من 365 يوم</td><td style="text-align:right;">${getNumberValue('agingOver365')}</td></tr>
+                        </table>
+                        
+                        <h2 class="pdf-section-title">تصنيف المخاطر</h2>
+                        <table class="pdf-table"><tr><th style="width:35%">البيان</th><th>القيمة</th></tr>
+                            <tr><td style="text-align:right;">مخاطر عالية جداً (حرجة)</td><td style="text-align:right;">${getNumberValue('riskCritical')}</td></tr>
+                            <tr><td style="text-align:right;">مخاطر عالية</td><td style="text-align:right;">${getNumberValue('riskHigh')}</td></tr>
+                            <tr><td style="text-align:right;">مخاطر متوسطة</td><td style="text-align:right;">${getNumberValue('riskMedium')}</td></tr>
+                            <tr><td style="text-align:right;">معايير تصنيف المخاطر</td><td style="text-align:right;">${getFieldValue('riskCriteria')}</td></tr>
+                        </table>
+                        
+                        <h2 class="pdf-section-title">الإجراءات المتخذة</h2>
+                        <table class="pdf-table"><tr><th style="width:10%">م</th><th>الإجراء</th></tr>${buildListRows(actions)}</table>
+                        
+                        <h2 class="pdf-section-title">العملاء المتعثرون الرئيسيون</h2>
+                        <table class="pdf-table">
+                            <tr><th style="width:5%">م</th><th>اسم العميل</th><th>المبلغ المستحق</th><th>مدة التأخير</th><th>مستوى المخاطرة</th><th>الإجراء المتخذ</th><th>ملاحظات</th></tr>
+                            ${buildDistressedRows()}
+                        </table>
+                        
+                        <h2 class="pdf-section-title">معلومات إضافية</h2>
+                        <table class="pdf-table"><tr><th style="width:35%">البيان</th><th>القيمة</th></tr>
+                            <tr><td style="text-align:right;">ملاحظات</td><td style="text-align:right;">${getFieldValue('additionalInfo')}</td></tr>
+                        </table>
+                    </div>
+                    
+                    <div style="page-break-before: always; margin-top: 40px;">
+                        <div class="pdf-footer">
+                            <div style="font-size: 18px; font-weight: 700; color: #52b788;">تكاليف - حلول أعمال ذكية</div>
+                            <div>القاهرة - مصر | +20 104 439 1177 | info@takalief.com</div>
+                            <hr style="width: 150px; margin: 15px auto; border: 1px solid #52b788;">
+                            <p>تم تعبئة هذا الاستبيان لتحليل العملاء المتعثرين</p>
+                            <p>تاريخ الإصدار: ${currentDate}</p>
+                            <p style="margin-top: 20px;">توقيع المسؤول: _________________________</p>
+                            <p>جميع الحقوق محفوظة © 2026</p>
+                        </div>
+                    </div>
+                `;
+                
+                pdfContainer.appendChild(pdfWrapper);
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                const canvas = await html2canvas(pdfContainer, { scale: 2, backgroundColor: '#ffffff', logging: false, useCORS: true });
+                const { jsPDF } = window.jspdf;
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 210;
+                const pageHeight = 297;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+                heightLeft -= pageHeight;
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+                    heightLeft -= pageHeight;
+                }
+                
+                pdf.save(`Distressed_Clients_${companyName.replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
+                
+                pdfContainer.innerHTML = '';
+                pdfContainer.style.opacity = '0';
+                pdfContainer.style.position = 'fixed';
+                pdfContainer.style.top = '-99999px';
+                
+                exportBtn.innerHTML = originalText;
+                exportBtn.disabled = false;
+                alert('تم تصدير التقرير بنجاح');
+            } catch (error) {
+                console.error('PDF Error:', error);
+                alert('حدث خطأ: ' + error.message);
+                const exportBtn = event.target;
+                exportBtn.innerHTML = '<i class="fas fa-file-pdf me-2"></i> تصدير التقرير (PDF)';
+                exportBtn.disabled = false;
+            }
+        }
+        
+        function init() {
+            const container = document.getElementById('distressedClientsContainer');
+            container.innerHTML = '';
+            const firstClient = document.createElement('div');
+            firstClient.className = 'distressed-client-item';
+            firstClient.id = 'distressedClient-1';
+            firstClient.innerHTML = `
+                <div class="row mb-2">
+                    <div class="col-md-4"><input type="text" class="form-control" placeholder="اسم العميل" id="clientName1"></div>
+                    <div class="col-md-2"><input type="text" class="form-control" placeholder="المبلغ المستحق" id="clientAmount1"></div>
+                    <div class="col-md-2"><input type="text" class="form-control" placeholder="مدة التأخير (أيام)" id="clientDelay1"></div>
+                    <div class="col-md-3"><select class="form-select" id="clientRisk1"><option value="">مستوى المخاطرة</option><option value="حرجة">حرجة</option><option value="عالية">عالية</option><option value="متوسطة">متوسطة</option><option value="منخفضة">منخفضة</option></select></div>
+                    <div class="col-md-1"><button class="btn btn-danger btn-sm" onclick="removeDistressedClient(1)" style="display:none;"><i class="fas fa-trash"></i></button></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6"><select class="form-select" id="clientAction1"><option value="">الإجراء المتخذ</option><option value="تذكيرات">تذكيرات</option><option value="مكالمات هاتفية">مكالمات هاتفية</option><option value="زيارات ميدانية">زيارات ميدانية</option><option value="إنذار رسمي">إنذار رسمي</option><option value="إجراءات قانونية">إجراءات قانونية</option><option value="تسوية">تسوية</option></select></div>
+                    <div class="col-md-6"><textarea class="form-control" rows="1" placeholder="ملاحظات إضافية" id="clientNotes1"></textarea></div>
+                </div>
+            `;
+            container.appendChild(firstClient);
+            distressedClientCount = 1;
+            refreshPreview();
+            const today = new Date().toISOString().split('T')[0];
+            if (document.getElementById('submissionDate')) document.getElementById('submissionDate').value = today;
+        }
+        
+        window.onload = init;
+    </script>
+</body>
+</html>
